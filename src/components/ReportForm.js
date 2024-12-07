@@ -1,11 +1,15 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function ReportForm() {
   const [formData, setFormData] = useState({
     category: "Doping",
+    athleteName: "",
     description: "",
     attachments: [],
   });
+
+  const navigate = useNavigate();
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -20,6 +24,9 @@ function ReportForm() {
   const handleSubmit = (event) => {
     event.preventDefault();
     console.log(formData);
+
+    // Redirect to Thank You page after form submission
+    navigate("/thank-you");
   };
 
   return (
@@ -43,6 +50,20 @@ function ReportForm() {
             >
               <option value="Doping">Doping</option>
             </select>
+          </div>
+          <div className="mb-6">
+            <label htmlFor="athleteName" className="block text-[#203c5c] text-sm font-semibold mb-2">
+              Athlete Name
+            </label>
+            <input
+              type="text"
+              id="athleteName"
+              name="athleteName"
+              value={formData.athleteName}
+              onChange={handleChange}
+              placeholder="Enter the athlete's name"
+              className="shadow-md border rounded w-full py-2 px-3 text-[#203c5c] leading-tight focus:outline-none focus:ring-2 focus:ring-[#203c5c]"
+            />
           </div>
           <div className="mb-6">
             <label htmlFor="description" className="block text-[#203c5c] text-sm font-semibold mb-2">

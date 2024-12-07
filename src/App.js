@@ -9,8 +9,9 @@ import BiologicalPassportRecords from "./components/investigatordashbord/Biologi
 import LandingPage from "./components/LandingPage";
 import Login from "./components/Login";
 import Performance from "./components/investigatordashbord/Performance";
+import ThankYouPage from "./components/ThankYouPage"; // Import the Thank You page
 import "bootstrap/dist/css/bootstrap.min.css";
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 function App() {
   return (
@@ -32,11 +33,11 @@ function App() {
           {/* Nested Routes for AthleteDetails */}
           <Route path="performance" element={<Performance />} />
           <Route path="biological-passport-records" element={<BiologicalPassportRecords />} />
-          {/* Add more nested routes here */}
         </Route>
 
         {/* Miscellaneous */}
         <Route path="/report" element={<ReportForm />} />
+        <Route path="/thank-you" element={<ThankYouPage />} /> {/* Thank You page route */}
       </Routes>
     </Router>
   );
