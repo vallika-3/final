@@ -1,171 +1,211 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { Line } from "react-chartjs-2";
+import { Chart as ChartJS } from "chart.js/auto";
 
 const PerformancePage = () => {
-  // Sample athlete data
-  const [athleteData] = useState({
-    name: 'John Doe',
-    sport: 'Track and Field',
-    history: [
-      { event: '100m', date: '2024-01-01', result: 10.5 },
-      { event: '100m', date: '2024-03-01', result: 10.2 },
-      { event: '100m', date: '2024-05-01', result: 9.8 }, // Anomaly: significant improvement
-      { event: '200m', date: '2024-02-01', result: 21.5 },
-      { event: '200m', date: '2024-04-01', result: 21.3 },
+  const [athlete, setAthlete] = useState({
+    name: "John Doe",
+    sportHistory: [
+      { game: "Game 1", score: 85, date: "2023-01-01", result: "Win" },
+      { game: "Game 2", score: 88, date: "2023-06-15", result: "Loss" },
+      { game: "Game 3", score: 95, date: "2023-09-23", result: "Win" },
+      { game: "Game 4", score: 92, date: "2024-01-10", result: "Win" }, // Example of recent game
+    ],
+    recentTrainingData: [
+      { trainingDate: "2024-01-02", hoursTrained: 5 },
+      { trainingDate: "2023-12-28", hoursTrained: 6 },
+      { trainingDate: "2023-12-15", hoursTrained: 4 },
     ],
   });
 
-  // Function to calculate performance anomaly (simple version, can be expanded)
-  const calculateAnomaly = (history) => {
-    let alertMessage = '';
-    for (let i = 1; i < history.length; i++) {
-      const prevResult = history[i - 1].result;
-      const currentResult = history[i].result;
-
-      // If performance improves by more than 3% (example threshold), flag as anomaly
-      if (currentResult < prevResult * 0.97) {
-        alertMessage = `Anomaly detected in ${history[i].event} on ${history[i].date}: Significant improvement`;
-        break;
-      }
-    }
-    return alertMessage;
+  // Function to check for performance improvement (simple threshold)
+  const isPerformanceSuspected = () => {
+    const lastTwoScores = athlete.sportHistory.slice(-2);
+    const scoreDifference = lastTwoScores[1].score - lastTwoScores[0].score;
+    return scoreDifference >= 7; // Threshold for suspicion
   };
 
-  const performanceAnomaly = calculateAnomaly(athleteData.history);
+  const chartData = {
+    labels: athlete.sportHistory.map((entry) => entry.date),
+    datasets: [
+      {
+        label: "Performance (Score)",
+        data: athlete.sportHistory.map((entry) => entry.score),
+        fill: false,
+        borderColor: isPerformanceSuspected() ? "red" : "green",
+        tension: 0.1,
+      },
+    ],
+  };
+
+  // Calculate average score and best score
+  const averageScore = (
+    athlete.sportHistory.reduce((acc, curr) => acc + curr.score, 0) /
+    athlete.sportHistory.length
+  ).toFixed(2);
+
+  const bestScore = Math.max(...athlete.sportHistory.map((entry) => entry.score));
+
+  // Calculate average training hours
+  const averageTrainingHours = (
+    athlete.recentTrainingData.reduce((acc, curr) => acc + curr.hoursTrained, 0) /
+    athlete.recentTrainingData.length
+  ).toFixed(1);
+
+  // Separate wins and losses
+  const wins = athlete.sportHistory.filter((entry) => entry.result === "Win");
+  const losses = athlete.sportHistory.filter((entry) => entry.result === "Loss");
 
   return (
     <div style={styles.container}>
-      {/* Athlete Info Card */}
-      <div style={styles.card}>
-        <h1 style={styles.header}>Athlete Profile</h1>
-        <div style={styles.profile}>
-          <h2 style={styles.name}>{athleteData.name}</h2>
-          <p style={styles.sport}>Sport: {athleteData.sport}</p>
+      <h1 style={styles.heading}>Athlete Performance</h1>
+
+      <div style={styles.gridContainer}>
+        {/* Performance Comparison (Past vs. Current) */}
+        <div style={styles.card}>
+          <h2 style={styles.cardTitle}>Performance Comparison</h2>
+          <p style={styles.text}>Recent Performance: {athlete.sportHistory.slice(-1)[0].score}</p>
+          <p style={styles.text}>Previous Best Score: {bestScore}</p>
+          <p style={styles.text}>
+            Performance Change:{" "}
+            {isPerformanceSuspected() ? "Significant Increase - Possible Suspicion!" : "Normal Growth"}
+          </p>
         </div>
-      </div>
 
-      {/* Performance History Card */}
-      <div style={styles.card}>
-        <h3 style={styles.subHeader}>Performance History</h3>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.tableHeader}>Event</th>
-              <th style={styles.tableHeader}>Date</th>
-              <th style={styles.tableHeader}>Result (seconds)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {athleteData.history.map((entry, index) => (
-              <tr key={index} style={index % 2 === 0 ? styles.evenRow : styles.oddRow}>
-                <td style={styles.tableCell}>{entry.event}</td>
-                <td style={styles.tableCell}>{entry.date}</td>
-                <td style={styles.tableCell}>{entry.result}</td>
-              </tr>
+        {/* Performance Analysis */}
+        <div style={styles.card}>
+          <h2 style={styles.cardTitle}>Performance Analysis</h2>
+          <p style={styles.text}>Average Score: {averageScore}</p>
+          <p style={styles.text}>Best Score: {bestScore}</p>
+          <p style={styles.text}>Training Hours (Average): {averageTrainingHours} hours</p>
+        </div>
+
+        {/* Doping Risk Insights */}
+        <div style={styles.card}>
+          <h2 style={styles.cardTitle}>Doping Risk Insights</h2>
+          <p style={styles.text}>
+            Based on the athlete's performance trends and rapid improvement in recent games, there could be a
+            higher risk of doping. Further analysis of the training hours and recovery periods is recommended.
+          </p>
+        </div>
+
+        {/* Progressive Growth */}
+        <div style={styles.card}>
+          <h2 style={styles.cardTitle}>Progressive Growth</h2>
+          <ul style={styles.list}>
+            {athlete.sportHistory.map((entry, index) => (
+              <li style={styles.text} key={index}>
+                {entry.game} - Score: {entry.score} (Date: {entry.date})
+              </li>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </ul>
+        </div>
 
-      {/* Performance Comparison Card */}
-      <div style={styles.card}>
-        <h3 style={styles.subHeader}>Performance Comparison</h3>
-        {performanceAnomaly ? (
-          <div style={styles.alert}>
-            <p style={styles.alertText}>{performanceAnomaly}</p>
+        {/* Recent Training Data */}
+        <div style={styles.card}>
+          <h2 style={styles.cardTitle}>Recent Training Data</h2>
+          <ul style={styles.list}>
+            {athlete.recentTrainingData.map((entry, index) => (
+              <li style={styles.text} key={index}>
+                {entry.trainingDate} - Hours Trained: {entry.hoursTrained} hours
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Wins and Losses */}
+        <div style={styles.card}>
+          <h2 style={styles.cardTitle}>Wins and Losses</h2>
+          <div>
+            <h3 style={styles.cardTitle}>Wins</h3>
+            <ul style={styles.list}>
+              {wins.map((entry, index) => (
+                <li style={styles.text} key={index}>
+                  {entry.game} - Score: {entry.score} (Date: {entry.date})
+                </li>
+              ))}
+            </ul>
           </div>
-        ) : (
-          <p>No anomalies detected in recent performance.</p>
-        )}
-      </div>
+          <div>
+            <h3 style={styles.cardTitle}>Losses</h3>
+            <ul style={styles.list}>
+              {losses.map((entry, index) => (
+                <li style={styles.text} key={index}>
+                  {entry.game} - Score: {entry.score} (Date: {entry.date})
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
 
-      {/* Risk Indicator Card */}
-      <div style={styles.card}>
-        <h3 style={styles.subHeader}>Risk Indicator for Doping</h3>
-        <p>This section will show a risk score based on performance analysis. Anomalies will trigger a review process.</p>
-      </div>
-
-      {/* TUE Check Card */}
-      <div style={styles.card}>
-        <h3 style={styles.subHeader}>TUE Check</h3>
-        <p>Cross-reference performance anomalies with Therapeutic Use Exemption records to validate performance changes.</p>
-      </div>
-
-      {/* Feedback & Suggestions Card */}
-      <div style={styles.card}>
-        <h3 style={styles.subHeader}>Feedback and Improvement Suggestions</h3>
-        <p>Recommendations on improving performance tracking accuracy, training, and recovery processes.</p>
+        {/* Performance Chart (Visualization) */}
+        <div style={styles.chartContainer}>
+          <h3 style={styles.cardTitle}>Performance Over Time</h3>
+          <Line data={chartData} />
+        </div>
       </div>
     </div>
   );
 };
 
-// Inline styles
 const styles = {
   container: {
-    padding: '20px',
-    fontFamily: 'Arial, sans-serif',
-    backgroundColor: '#f4f4f4',
+    fontFamily: "Arial, sans-serif",
+    padding: "20px",
+    backgroundColor: "#f5f5f5",
+    borderRadius: "10px",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    minHeight: "100vh",
+  },
+  heading: {
+    textAlign: "center",
+    color: "#333",
+    marginBottom: "40px",
+    fontWeight: "600",
+    fontSize: "36px",
+  },
+  gridContainer: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+    gap: "20px",
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
-    marginBottom: '20px',
-    padding: '15px',
-    transition: 'transform 0.2s ease-in-out',
+    backgroundColor: "#fff",
+    borderRadius: "12px",
+    boxShadow: "0 6px 12px rgba(0, 0, 0, 0.1)",
+    padding: "20px",
+    transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out", // Added transition for smooth effect
   },
-  header: {
-    textAlign: 'center',
-    color: '#4CAF50',
+  cardTitle: {
+    color: "#333",
+    fontSize: "22px",
+    marginBottom: "15px",
+    fontWeight: "700",
+    textTransform: "uppercase",
   },
-  subHeader: {
-    fontSize: '20px',
-    color: '#333',
-    marginBottom: '10px',
+  text: {
+    color: "#555",
+    fontSize: "16px",
+    margin: "10px 0",
+    lineHeight: "1.6",
   },
-  profile: {
-    textAlign: 'center',
+  list: {
+    paddingLeft: "20px",
   },
-  name: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-    color: '#333',
+  chartContainer: {
+    backgroundColor: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+    boxShadow: "0 6px 12px rgba(0, 0, 0, 0.1)",
+    gridColumn: "span 2", // Make it span the full width of the row
   },
-  sport: {
-    fontSize: '18px',
-    color: '#777',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-  },
-  tableHeader: {
-    backgroundColor: '#4CAF50',
-    color: '#fff',
-    padding: '10px',
-    textAlign: 'left',
-  },
-  tableCell: {
-    padding: '10px',
-    textAlign: 'left',
-    borderBottom: '1px solid #ddd',
-  },
-  evenRow: {
-    backgroundColor: '#f9f9f9',
-  },
-  oddRow: {
-    backgroundColor: '#fff',
-  },
-  alert: {
-    backgroundColor: '#ffcc00',
-    padding: '10px',
-    borderRadius: '5px',
-    marginTop: '10px',
-  },
-  alertText: {
-    fontSize: '16px',
-    color: '#fff',
-    textAlign: 'center',
+};
+
+// Hover effect styling
+const hoverEffect = {
+  ":hover": {
+    transform: "scale(1.05)",
+    boxShadow: "0 10px 20px rgba(0, 0, 0, 0.1)", // More pronounced shadow on hover
   },
 };
 
