@@ -1,217 +1,172 @@
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaBars } from "react-icons/fa";
-import RightPanel from "./RightPanel";
+import React, { useState } from 'react';
 
-const AthleteDetails = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedSection, setSelectedSection] = useState("Medical Test Reports"); // Default section
-  const params = useParams();
-  const navigate = useNavigate();
+const PerformancePage = () => {
+  // Sample athlete data
+  const [athleteData] = useState({
+    name: 'John Doe',
+    sport: 'Track and Field',
+    history: [
+      { event: '100m', date: '2024-01-01', result: 10.5 },
+      { event: '100m', date: '2024-03-01', result: 10.2 },
+      { event: '100m', date: '2024-05-01', result: 9.8 }, // Anomaly: significant improvement
+      { event: '200m', date: '2024-02-01', result: 21.5 },
+      { event: '200m', date: '2024-04-01', result: 21.3 },
+    ],
+  });
 
-  const investigatorName = { name: "John Doe" }; // Placeholder for investigator's name
+  // Function to calculate performance anomaly (simple version, can be expanded)
+  const calculateAnomaly = (history) => {
+    let alertMessage = '';
+    for (let i = 1; i < history.length; i++) {
+      const prevResult = history[i - 1].result;
+      const currentResult = history[i].result;
 
-  const handleMenuItemClick = (item) => {
-    setSelectedSection(item);
-    if (item === "Performance") {
-      navigate(`/athlete-details/${params.athleteId}/performance`);
+      // If performance improves by more than 3% (example threshold), flag as anomaly
+      if (currentResult < prevResult * 0.97) {
+        alertMessage = `Anomaly detected in ${history[i].event} on ${history[i].date}: Significant improvement`;
+        break;
+      }
     }
+    return alertMessage;
   };
 
-  const handleGoBack = () => {
-    navigate(-1); // Goes back to the previous page
-  };
+  const performanceAnomaly = calculateAnomaly(athleteData.history);
 
   return (
-    <div>
-      {/* Navigation Bar */}
-      <nav className="bg-[#203C5C] sticky top-0 z-10 py-4 shadow-lg">
-        <div className="flex justify-between items-center px-6 text-white">
-          {/* Back Button */}
-          <div className="flex items-center">
-            <button
-              onClick={handleGoBack}
-              className="flex items-center justify-center text-white p-2 rounded-full focus:outline-none mr-4"
-              aria-label="Go Back"
-            >
-              <FaArrowLeft size={18} />
-            </button>
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/2/29/Ministry_of_Youth_Affairs_and_Sports.svg"
-              alt="Ministry Logo"
-              className="h-12 w-auto filter invert mr-4"
-            />
-            <span className="text-2xl font-bold">Athlete Details</span>
-          </div>
-
-          {/* Profile Picture */}
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-full bg-gray-300 overflow-hidden shadow-xl">
-              <img
-                src="https://via.placeholder.com/100"
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <span className="text-white font-medium text-lg">
-              {investigatorName.name}
-            </span>
-          </div>
+    <div style={styles.container}>
+      {/* Athlete Info Card */}
+      <div style={styles.card}>
+        <h1 style={styles.header}>Athlete Profile</h1>
+        <div style={styles.profile}>
+          <h2 style={styles.name}>{athleteData.name}</h2>
+          <p style={styles.sport}>Sport: {athleteData.sport}</p>
         </div>
-      </nav>
+      </div>
 
-      {/* Main Content */}
-      <div style={containerStyle}>
-        {/* Sidebar */}
-        {isMenuOpen && (
-          <div style={leftPanelStyle}>
-            <h3 style={headerStyle}>Athlete Details</h3>
-            <ul style={menuListStyle}>
-              {menuItems.slice(0, -1).map((item) => (  // Excluding Analyze from the loop
-                <li
-                  key={item}
-                  style={{
-                    ...menuItemStyle,
-                    backgroundColor:
-                      selectedSection === item ? "#346195" : "#203c5c", // Updated color for selected
-                    color: selectedSection === item ? "#ffffff" : "#e6f1ff",
-                    fontWeight: selectedSection === item ? "800" : "600",
-                  }}
-                  onClick={() => handleMenuItemClick(item)}
-                >
-                  {item}
-                </li>
-              ))}
-              <li
-                style={{
-                  ...menuItemStyle,
-                  backgroundColor: "#ffffff", // White background for the Analyze button
-                  color: "#203c5c", // Blue text for the Analyze button
-                  fontWeight: "800", // Bold font for Analyze button
-                  marginTop: "auto", // Push it to the bottom
-                  display: 'flex', // Make the li a flex container
-                  justifyContent: 'center', // Center horizontally
-                  alignItems: 'center', // Center vertically
-                }}
-                onClick={() => handleMenuItemClick("Analyze")}
-              >
-                Analyze
-              </li>
-            </ul>
+      {/* Performance History Card */}
+      <div style={styles.card}>
+        <h3 style={styles.subHeader}>Performance History</h3>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.tableHeader}>Event</th>
+              <th style={styles.tableHeader}>Date</th>
+              <th style={styles.tableHeader}>Result (seconds)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {athleteData.history.map((entry, index) => (
+              <tr key={index} style={index % 2 === 0 ? styles.evenRow : styles.oddRow}>
+                <td style={styles.tableCell}>{entry.event}</td>
+                <td style={styles.tableCell}>{entry.date}</td>
+                <td style={styles.tableCell}>{entry.result}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Performance Comparison Card */}
+      <div style={styles.card}>
+        <h3 style={styles.subHeader}>Performance Comparison</h3>
+        {performanceAnomaly ? (
+          <div style={styles.alert}>
+            <p style={styles.alertText}>{performanceAnomaly}</p>
           </div>
+        ) : (
+          <p>No anomalies detected in recent performance.</p>
         )}
+      </div>
 
-        {/* Content Area */}
-        <div style={rightPanelStyle}>
-          <RightPanel
-            selectedSection={selectedSection}
-            athleteId={params.athleteId}
-          />
-        </div>
+      {/* Risk Indicator Card */}
+      <div style={styles.card}>
+        <h3 style={styles.subHeader}>Risk Indicator for Doping</h3>
+        <p>This section will show a risk score based on performance analysis. Anomalies will trigger a review process.</p>
+      </div>
 
-        {/* Hamburger Icon */}
-        <div
-          style={{
-            ...hamburgerStyle,
-            color: isMenuOpen ? "#ffffff" : "#203c5c",
-          }}
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          <FaBars size={24} />
-        </div>
+      {/* TUE Check Card */}
+      <div style={styles.card}>
+        <h3 style={styles.subHeader}>TUE Check</h3>
+        <p>Cross-reference performance anomalies with Therapeutic Use Exemption records to validate performance changes.</p>
+      </div>
+
+      {/* Feedback & Suggestions Card */}
+      <div style={styles.card}>
+        <h3 style={styles.subHeader}>Feedback and Improvement Suggestions</h3>
+        <p>Recommendations on improving performance tracking accuracy, training, and recovery processes.</p>
       </div>
     </div>
   );
 };
 
-// Menu items
-const menuItems = [
-  "Medical Test Reports",
-  "Biological Passport Records",
-  "Access to Social Media",
-  "Financial Transactions",
-  "Travel History",
-  "Performance",
-  "Analyze", // Analyze button is now at the bottom
-];
-
-// Styles
-const containerStyle = {
-  display: "flex",
-  height: "84vh",
-  margin: "3vh auto",
-  borderRadius: "24px",
-  overflow: "hidden",
-  width: "98.5%",
-  fontFamily: "'Poppins', sans-serif",
-  backgroundColor: "#eef3f8",
-  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.15)",
-  position: "relative",
+// Inline styles
+const styles = {
+  container: {
+    padding: '20px',
+    fontFamily: 'Arial, sans-serif',
+    backgroundColor: '#f4f4f4',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: '8px',
+    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+    marginBottom: '20px',
+    padding: '15px',
+    transition: 'transform 0.2s ease-in-out',
+  },
+  header: {
+    textAlign: 'center',
+    color: '#4CAF50',
+  },
+  subHeader: {
+    fontSize: '20px',
+    color: '#333',
+    marginBottom: '10px',
+  },
+  profile: {
+    textAlign: 'center',
+  },
+  name: {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  sport: {
+    fontSize: '18px',
+    color: '#777',
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+  },
+  tableHeader: {
+    backgroundColor: '#4CAF50',
+    color: '#fff',
+    padding: '10px',
+    textAlign: 'left',
+  },
+  tableCell: {
+    padding: '10px',
+    textAlign: 'left',
+    borderBottom: '1px solid #ddd',
+  },
+  evenRow: {
+    backgroundColor: '#f9f9f9',
+  },
+  oddRow: {
+    backgroundColor: '#fff',
+  },
+  alert: {
+    backgroundColor: '#ffcc00',
+    padding: '10px',
+    borderRadius: '5px',
+    marginTop: '10px',
+  },
+  alertText: {
+    fontSize: '16px',
+    color: '#fff',
+    textAlign: 'center',
+  },
 };
 
-const leftPanelStyle = {
-  width: "25%",
-  backgroundColor: "#203c5c",
-  padding: "30px 20px",
-  borderRadius: "24px 0 0 24px",
-  color: "#ffffff",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  boxShadow: "inset 0 3px 8px rgba(0, 0, 0, 0.25)",
-};
-
-const headerStyle = {
-  fontSize: "28px",
-  fontWeight: "800",
-  marginBottom: "25px",
-  textTransform: "uppercase",
-  letterSpacing: "1.5px",
-  textAlign: "center",
-  borderBottom: "2px solid #162c42",
-  paddingBottom: "10px",
-  color: "#ffffff",
-  textShadow: "2px 2px 6px rgba(0, 0, 0, 0.3)",
-};
-
-const menuListStyle = {
-  listStyleType: "none",
-  padding: "0",
-  width: "100%",
-};
-
-const menuItemStyle = {
-  padding: "17px 25px",
-  marginBottom: "16px",
-  cursor: "pointer",
-  borderRadius: "16px",
-  transition: "all 0.3s ease",
-  backgroundColor: "#203c5c",
-  color: "#e6f1ff",
-  fontWeight: "600",
-  textAlign: "left",
-  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
-  textShadow: "1px 1px 4px rgba(0, 0, 0, 0.5)",
-  lineHeight: "1.6",
-  letterSpacing: "0.5px",
-};
-
-const hamburgerStyle = {
-  position: "absolute",
-  top: "35px",
-  left: "40px",
-  zIndex: "20",
-  cursor: "pointer",
-};
-
-const rightPanelStyle = {
-  flex: 1,
-  padding: "20px",
-  backgroundColor: "#ffffff",
-  borderRadius: "0 24px 24px 0",
-  boxShadow: "inset 0 3px 8px rgba(0, 0, 0, 0.15)",
-  overflowY: "auto",
-  maxHeight: "92vh",
-};
-
-export default AthleteDetails;
+export default PerformancePage;
